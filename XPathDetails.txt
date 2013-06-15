@@ -1,0 +1,12 @@
+//*[@id="main"]/table[2]/tbody/tr[2]/td[1]/font/b
+//*[@id="main"]/table[2]/tbody/tr[5]/td[2]/font
+//*[@id="main"]/table[2]/tbody/tr[2]/td[3]/font/a
+//*[@id="main"]/table[2]/tbody/tr[2]/td[4]/font
+
+This it the base x path configuration 
+//*[@id="main"]/table[2]/tbody/tr
+
+We will get all the table rows from these 
+
+
+//*[@id="main"]/table/tbody/tr
