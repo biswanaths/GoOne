@@ -12,3 +12,4 @@ class MovieItem(Item):
 	rating = Field()
 	title = Field()
 	votes = Field()
+	director = Field()
