@@ -13,3 +13,11 @@ class MovieItem(Item):
 	title = Field()
 	votes = Field()
 	director = Field()
+
+class EventItem(Item):
+	name = Field()
+	date = Field()
+	time = Field()
+	place = Field()
+	address = Field()
+
