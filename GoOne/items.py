@@ -20,4 +20,4 @@ class EventItem(Item):
 	time = Field()
 	place = Field()
 	address = Field()
-
+	location = Field()
