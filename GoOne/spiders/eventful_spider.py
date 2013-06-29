@@ -6,21 +6,19 @@ from GoOne.items import EventItem
 
 class EventfulSpider(CrawlSpider):
 
-	name = 'Event'
+	name = 'CityEvents'
 	allowed_domains = ["eventful.com"]
-	start_urls = [
-		"http://eventful.com/v2/tools/events/faceted_search?type=synch&location_type=city_id&location_id=18095&return_facets=1&when=future&page_number=1&sort=date&page_size=100&worldwide=0",
-		"http://eventful.com/v2/tools/events/faceted_search?type=synch&location_type=city_id&location_id=8446&return_facets=1&when=future&page_number=1&sort=&page_size=100worldwide=0",
-		"http://eventful.com/v2/tools/events/faceted_search?type=synch&location_type=city_id&location_id=620&return_facets=1&when=future&page_number=1&sort=&page_size=100&worldwide=0",
-		 "http://eventful.com/v2/tools/events/faceted_search?type=synch&location_type=city_id&location_id=1199&return_facets=1&when=future&page_number=1&sort=&page_size=100&worldwide=0",
-		 "http://eventful.com/v2/tools/events/faceted_search?type=synch&location_type=city_id&location_id=7434&return_facets=1&when=future&page_number=1&sort=&page_size=100&worldwide=0",
-		 "http://eventful.com/v2/tools/events/faceted_search?type=synch&location_type=city_id&location_id=620&return_facets=1&when=future&page_number=1&sort=&page_size=100&worldwide=0",
-		]
-
-
+	
 	rules = (
-		      Rule(SgmlLinkExtractor(allow=('/events/', ),deny=('/categories')), callback='parse_event'),
-   		 )		
+		# Extract the events but deny the categories links for scrapping the events
+		Rule(SgmlLinkExtractor(allow=('/events/', ),deny=('/categories')), callback='parse_event'),
+   	)		
+
+	def __init__(self,city_ids):
+		super(EventfulSpider,self).__init__()
+		urlformat = "http://eventful.com/v2/tools/events/faceted_search?type=synch&location_type=city_id&location_id=%s" \
+			    "&return_facets=1&when=future&page_number=1&sort=date&page_size=100&worldwide=0"
+		self.start_urls = [ urlformat % city_id for city_id in open(city_ids)]
 
 
 	def parse_event(self, response):
