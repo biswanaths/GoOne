@@ -3,6 +3,7 @@ from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.selector import HtmlXPathSelector
 
 from GoOne.items import EventItem
+from GoOne.utils.unix_timestamp_convertor import TimestampUtil
 
 class EventfulSpider(CrawlSpider):
 
@@ -33,5 +34,11 @@ class EventfulSpider(CrawlSpider):
 		eventItem["address"] +=	(hxs.select('//*[@itemprop="location"]/p/span[2]/text()').extract())[0].strip()+',' 
 		eventItem["address"] += (hxs.select('//*[@itemprop="location"]/p/span[3]/text()').extract())[0].strip()
 		eventItem["location"] = (hxs.select('//*[@itemprop="location"]/p/span[2]/text()').extract())[0].strip()
+		if eventItem["date"] and eventItem["time"]:
+			date = eventItem["date"].split(",")
+			time = eventItem["time"].split()
+			hour, min = TimestampUtil.get_time(time[1],time[2])
+			eventItem["timestamp"] = TimestampUtil.get_unix_timestamp(int(date[1]),int(TimestampUtil.get_month(date[0].split()[0])),int(date[0].split()[1]),hour,min,0)
+
 		return eventItem
 

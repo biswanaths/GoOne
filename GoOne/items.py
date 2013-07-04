@@ -21,3 +21,4 @@ class EventItem(Item):
 	place = Field()
 	address = Field()
 	location = Field()
+	timestamp = Field()
