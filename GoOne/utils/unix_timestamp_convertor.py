@@ -23,9 +23,9 @@ class TimestampUtil(object):
 
 	@staticmethod
 	def is_within_range(timestamp):
-		start_date = datetime.date.today()
+		start_date = datetime.date.today() + datetime.timedelta(TimestampUtil.no_of_days)
 		end_date = start_date + datetime.timedelta(TimestampUtil.no_of_days)
 		start_timestamp = time.mktime(start_date.timetuple())		
 		end_timestamp = time.mktime(end_date.timetuple())
-		return timestamp > start_timestamp and timestamp < end_timestamp
+		return timestamp >= start_timestamp and timestamp < end_timestamp
 
