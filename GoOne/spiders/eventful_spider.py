@@ -4,6 +4,7 @@ from scrapy.selector import HtmlXPathSelector
 
 from GoOne.items import EventItem
 from GoOne.utils.unix_timestamp_convertor import TimestampUtil
+from GoOne.utils.geocoding_coordinates_fetcher import GeoCodingUtil
 
 class EventfulSpider(CrawlSpider):
 
@@ -34,6 +35,10 @@ class EventfulSpider(CrawlSpider):
 		eventItem["address"] +=	(hxs.select('//*[@itemprop="location"]/p/span[2]/text()').extract())[0].strip()+',' 
 		eventItem["address"] += (hxs.select('//*[@itemprop="location"]/p/span[3]/text()').extract())[0].strip()
 		eventItem["location"] = (hxs.select('//*[@itemprop="location"]/p/span[2]/text()').extract())[0].strip()
+		lat,lng = GeoCodingUtil.get_latlng(eventItem["address"])
+		if lat!=0 and lng!=0:
+			eventItem["latitude"] = lat
+			eventItem["longitude"] = lng
 		if eventItem["date"] and eventItem["time"]:
 			date = eventItem["date"].split(",")
 			time = eventItem["time"].split()
