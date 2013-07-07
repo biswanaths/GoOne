@@ -21,8 +21,7 @@ class EventfulSpider(CrawlSpider):
 		urlformat = "http://eventful.com/v2/tools/events/faceted_search?type=synch&location_type=city_id&location_id=%s" \
 			    "&return_facets=1&when=future&page_number=1&sort=date&page_size=100&worldwide=0"
 		self.start_urls = [ urlformat % city_id for city_id in open(city_ids)]
-
-
+	
 	def parse_event(self, response):
 		self.log('This is a event page! %s' % response.url)
 		hxs = HtmlXPathSelector(response)
@@ -44,6 +43,6 @@ class EventfulSpider(CrawlSpider):
 			time = eventItem["time"].split()
 			hour, min = TimestampUtil.get_time(time[1],time[2])
 			eventItem["timestamp"] = TimestampUtil.get_unix_timestamp(int(date[1]),int(TimestampUtil.get_month(date[0].split()[0])),int(date[0].split()[1]),hour,min,0)
-
+		if eventItem["timestamp"] and not TimestampUtil.is_within_range(eventItem["timestamp"]): return None
 		return eventItem
-
+	
