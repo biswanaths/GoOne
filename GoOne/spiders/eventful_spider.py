@@ -8,7 +8,7 @@ from GoOne.utils.geocoding_coordinates_fetcher import GeoCodingUtil
 
 class EventfulSpider(CrawlSpider):
 
-	name = 'CityEvents'
+	name = 'Eventful'
 	allowed_domains = ["eventful.com"]
 	
 	rules = (
@@ -34,15 +34,18 @@ class EventfulSpider(CrawlSpider):
 		eventItem["address"] +=	(hxs.select('//*[@itemprop="location"]/p/span[2]/text()').extract())[0].strip()+',' 
 		eventItem["address"] += (hxs.select('//*[@itemprop="location"]/p/span[3]/text()').extract())[0].strip()
 		eventItem["location"] = (hxs.select('//*[@itemprop="location"]/p/span[2]/text()').extract())[0].strip()
+		if eventItem["date"]:
+			date = eventItem["date"].split(",")
+			if eventItem["time"]:
+				time = eventItem["time"].split()
+				hour, min = TimestampUtil.get_time(time[1],time[2])
+				eventItem["timestamp"] = TimestampUtil.get_unix_timestamp(int(date[1]),int(TimestampUtil.get_month(date[0].split()[0])),int(date[0].split()[1]),hour,min,0)
+			else: 
+				 eventItem["timestamp"] = TimestampUtil.get_unix_timestamp(int(date[1]),int(TimestampUtil.get_month(date[0].split()[0])),int(date[0].split()[1]),0,0,0)	
+		if eventItem["timestamp"] and not TimestampUtil.is_within_range(eventItem["timestamp"]): return None
 		lat,lng = GeoCodingUtil.get_latlng(eventItem["address"])
 		if lat!=0 and lng!=0:
 			eventItem["latitude"] = lat
 			eventItem["longitude"] = lng
-		if eventItem["date"] and eventItem["time"]:
-			date = eventItem["date"].split(",")
-			time = eventItem["time"].split()
-			hour, min = TimestampUtil.get_time(time[1],time[2])
-			eventItem["timestamp"] = TimestampUtil.get_unix_timestamp(int(date[1]),int(TimestampUtil.get_month(date[0].split()[0])),int(date[0].split()[1]),hour,min,0)
-		if eventItem["timestamp"] and not TimestampUtil.is_within_range(eventItem["timestamp"]): return None
 		return eventItem
 	

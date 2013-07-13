@@ -17,13 +17,13 @@ class TimestampUtil(object):
 
 	@staticmethod
 	def get_time(time_value,period):
- 		hour_value = 12 if "PM" in period else 0 
+ 		hour_value = 12 if "PM" in period and "12" not in time_value else 0 
 		hour_string = time_value.split(":")
 		return int(hour_string[0])+hour_value,int(hour_string[1])
 
 	@staticmethod
 	def is_within_range(timestamp):
-		start_date = datetime.date.today() + datetime.timedelta(TimestampUtil.no_of_days)
+		start_date = datetime.date.today() + datetime.timedelta(1)
 		end_date = start_date + datetime.timedelta(TimestampUtil.no_of_days)
 		start_timestamp = time.mktime(start_date.timetuple())		
 		end_timestamp = time.mktime(end_date.timetuple())
