@@ -16,6 +16,7 @@ class MovieItem(Item):
 
 class EventItem(Item):
 	name = Field()
+	performer = Field()
 	date = Field()
 	time = Field()
 	place = Field()

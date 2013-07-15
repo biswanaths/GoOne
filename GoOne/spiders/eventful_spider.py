@@ -27,6 +27,10 @@ class EventfulSpider(CrawlSpider):
 		hxs = HtmlXPathSelector(response)
 		eventItem = EventItem()
                 eventItem["name"] = (hxs.select('//*[@class="ellipsis"]/text()').extract())[0].strip()
+		try:
+			eventItem["performer"] = (hxs.select('//*[@itemprop="performer"]/a/text()').extract())[0].strip()
+		except Exception, ex:
+	    		eventItem["performer"] = ""
                 eventItem["date"] = (hxs.select('//*[@itemprop="startDate"]/text()').extract())[1].strip()
                 eventItem["time"] = " ".join((hxs.select('//*[@itemprop="startDate"]/p/text()').extract())[0].split())
 		eventItem["place"] = (hxs.select('//*[@itemprop="location"]/h6/a/text()').extract())[0].strip()
