@@ -2,7 +2,7 @@ from scrapy.contrib.spiders import CrawlSpider, Rule
 from scrapy.contrib.linkextractors.sgml import SgmlLinkExtractor
 from scrapy.selector import HtmlXPathSelector
 
-from GoOne.items import EventItem
+from GoOne.items import EventfulItem
 from GoOne.utils.unix_timestamp_convertor import TimestampUtil
 from GoOne.utils.geocoding_coordinates_fetcher import GeoCodingUtil
 
@@ -25,33 +25,33 @@ class EventfulSpider(CrawlSpider):
 	def parse_event(self, response):
 		self.log('This is a event page! %s' % response.url)
 		hxs = HtmlXPathSelector(response)
-		eventItem = EventItem()
-                eventItem["name"] = (hxs.select('//*[@class="ellipsis"]/text()').extract())[0].strip()
+		eventfulItem = EventfulItem()
+                eventfulItem["name"] = (hxs.select('//*[@class="ellipsis"]/text()').extract())[0].strip()
 		try:
-			eventItem["performer"] = (hxs.select('//*[@itemprop="performer"]/a/text()').extract())[0].strip()
+			eventfulItem["performer"] = (hxs.select('//*[@itemprop="performer"]/a/text()').extract())[0].strip()
 		except Exception, ex:
-	    		eventItem["performer"] = ""
-                eventItem["date"] = (hxs.select('//*[@itemprop="startDate"]/text()').extract())[1].strip()
-                eventItem["time"] = " ".join((hxs.select('//*[@itemprop="startDate"]/p/text()').extract())[0].split())
-		eventItem["place"] = (hxs.select('//*[@itemprop="location"]/h6/a/text()').extract())[0].strip()
-                eventItem["address"] = (hxs.select('//*[@itemprop="location"]/p/span[1]/text()').extract())[0].strip()+',' 
-		eventItem["address"] +=	(hxs.select('//*[@itemprop="location"]/p/span[2]/text()').extract())[0].strip()+',' 
-		eventItem["address"] += (hxs.select('//*[@itemprop="location"]/p/span[3]/text()').extract())[0].strip()
-		eventItem["location"] = (hxs.select('//*[@itemprop="location"]/p/span[2]/text()').extract())[0].strip()
-		if eventItem["date"]:
-			if " - " in eventItem["date"]:
-				eventItem["date"] = eventItem["date"].split("-")[0]
-			date = eventItem["date"].split(",")
-			if eventItem["time"]:
-				time = eventItem["time"].split()
+	    		eventfulItem["performer"] = ""
+                eventfulItem["date"] = (hxs.select('//*[@itemprop="startDate"]/text()').extract())[1].strip()
+                eventfulItem["time"] = " ".join((hxs.select('//*[@itemprop="startDate"]/p/text()').extract())[0].split())
+		eventfulItem["place"] = (hxs.select('//*[@itemprop="location"]/h6/a/text()').extract())[0].strip()
+                eventfulItem["address"] = (hxs.select('//*[@itemprop="location"]/p/span[1]/text()').extract())[0].strip()+',' 
+		eventfulItem["address"] +=	(hxs.select('//*[@itemprop="location"]/p/span[2]/text()').extract())[0].strip()+',' 
+		eventfulItem["address"] += (hxs.select('//*[@itemprop="location"]/p/span[3]/text()').extract())[0].strip()
+		eventfulItem["location"] = (hxs.select('//*[@itemprop="location"]/p/span[2]/text()').extract())[0].strip()
+		if eventfulItem["date"]:
+			if " - " in eventfulItem["date"]:
+				eventfulItem["date"] = eventfulItem["date"].split("-")[0]
+			date = eventfulItem["date"].split(",")
+			if eventfulItem["time"]:
+				time = eventfulItem["time"].split()
 				hour, min = TimestampUtil.get_time(time[1],time[2])
-				eventItem["timestamp"] = TimestampUtil.get_unix_timestamp(int(date[1]),int(TimestampUtil.get_month(date[0].split()[0])),int(date[0].split()[1]),hour,min,0)
+				eventfulItem["timestamp"] = TimestampUtil.get_unix_timestamp(int(date[1]),int(TimestampUtil.get_month(date[0].split()[0])),int(date[0].split()[1]),hour,min,0)
 			else: 
-				 eventItem["timestamp"] = TimestampUtil.get_unix_timestamp(int(date[1]),int(TimestampUtil.get_month(date[0].split()[0])),int(date[0].split()[1]),0,0,0)	
-		if eventItem["timestamp"] and not TimestampUtil.is_within_range(eventItem["timestamp"]): return None
-		lat,lng = GeoCodingUtil.get_latlng(eventItem["address"])
+				 eventfulItem["timestamp"] = TimestampUtil.get_unix_timestamp(int(date[1]),int(TimestampUtil.get_month(date[0].split()[0])),int(date[0].split()[1]),0,0,0)	
+		if eventfulItem["timestamp"] and not TimestampUtil.is_within_range(eventfulItem["timestamp"]): return None
+		lat,lng = GeoCodingUtil.get_latlng(eventfulItem["address"])
 		if lat!=0 and lng!=0:
-			eventItem["latitude"] = lat
-			eventItem["longitude"] = lng
-		return eventItem
+			eventfulItem["latitude"] = lat
+			eventfulItem["longitude"] = lng
+		return eventfulItem
 	

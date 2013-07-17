@@ -14,7 +14,7 @@ class MovieItem(Item):
 	votes = Field()
 	director = Field()
 
-class EventItem(Item):
+class EventfulItem(Item):
 	name = Field()
 	performer = Field()
 	date = Field()
@@ -25,3 +25,17 @@ class EventItem(Item):
 	timestamp = Field()
 	latitude = Field()
 	longitude = Field()
+
+class EventbriteItem(Item):
+        name = Field()
+        organizer = Field()
+        date = Field()
+        time = Field()
+        place = Field()
+        address = Field()
+        location = Field()
+        timestamp = Field()
+        latitude = Field()
+        longitude = Field()
+
+
