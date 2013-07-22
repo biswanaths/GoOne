@@ -1,6 +1,6 @@
 import time
 import datetime
-import simplejson as json
+import json 
 import requests
 import sys
 import calendar
@@ -20,7 +20,7 @@ def eventbrite_extractor(city_ids):
 	urlformat = baseurl + date_query_string + "&city=%s" 
 #	start_urls = [ urlformat % city_id for city_id in open(city_ids)]
 	print 'Pulling data - %s' % datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-	start_urls = ["https://www.eventbrite.com/json/event_search?app_key=%s&date=Today&city=Las+Vegas&max=%s" % (api_key,paging_size)]
+	start_urls = ["https://www.eventbrite.com/json/event_search?app_key=%s&date=This Month&city=Las+Vegas&max=%s" % (api_key,paging_size)]
 
 	for url in start_urls:
 		page_no = 1
@@ -76,11 +76,17 @@ def dump_json_data(json_data,no_events):
 			json_string["timestamp"] = get_unix_timestamp(json_data["events"][i]["event"]["start_date"],"%Y-%m-%d %H:%M:%S")
 			json_object.append(json_string)
 		else:
-			print "*****************************Repeat Yes -- " + json_data["events"][i]["event"]["repeat_schedule"]
-			for timestamp in get_timestamp_array(json_data["events"][i]["event"]["repeat_schedule"],json_data["events"][i]["event"]["start_date"]):
-				print timestamp
-				json_string["timestamp"] = timestamp
-				json_object.append(json_string)
+			repeat_schedule = json_data["events"][i]["event"]["repeat_schedule"]	
+			if "custom" in repeat_schedule:
+				print "********Custom----------*********************Repeat Yes -- " + repeat_schedule
+                        	json_string["timestamp"] = get_unix_timestamp(json_data["events"][i]["event"]["start_date"],"%Y-%m-%d %H:%M:%S")
+                        	json_object.append(json_string)
+			else:
+				print "*****************************Repeat Yes -- " + repeat_schedule
+				for timestamp in get_timestamp_array(repeat_schedule,json_data["events"][i]["event"]["start_date"]):
+					print timestamp
+					json_string["timestamp"] = timestamp
+					json_object.append(json_string)
 		print json_string
 
 def get_unix_timestamp(date_string,format):
@@ -109,7 +115,7 @@ def get_timestamp_array(repeat_schedule, start_date):
 		while date < end_period:
 			if schedule[date.weekday()] == "Y":
 				 timestamp_array.append(int(time.mktime(date.timetuple())))
-			date = date + datetime.timedelta(1)	 	
+			date = date + datetime.timedelta(1)	
 
 	else:
 		if "/" in repeat_schedule:
