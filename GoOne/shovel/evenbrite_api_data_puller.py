@@ -16,11 +16,12 @@ def eventbrite_extractor(city_ids):
 	api_key = 'U2WO5RH3T3XPZBBMAH'
 	paging_size = 10
 	baseurl = "https://www.eventbrite.com/json/event_search?app_key=%s&max=%s" % (api_key,paging_size)
-	date_query_string = "&date=Today"
+	now_date = datetime.datetime.now()
+	global no_of_days
+	date_query_string = "&date=%s %s" % ((now_date + datetime.timedelta(1)).strftime("%Y-%m-%d"),(now_date + datetime.timedelta(no_of_days)).strftime("%Y-%m-%d"))
 	urlformat = baseurl + date_query_string + "&city=%s" 
-#	start_urls = [ urlformat % city_id for city_id in open(city_ids)]
+	start_urls = [ urlformat % city_id for city_id in open(city_ids)]
 	print 'Pulling data - %s' % datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-	start_urls = ["https://www.eventbrite.com/json/event_search?app_key=%s&date=This Month&city=Las+Vegas&max=%s" % (api_key,paging_size)]
 
 	for url in start_urls:
 		page_no = 1
@@ -42,11 +43,11 @@ def eventbrite_extractor(city_ids):
 			dump_json_data(json_data, num_showing)
 		
 		global json_object
-		print json.dumps(json_object)
+		with open('eventbrite_events.json', 'w') as outfile:
+  			json.dump(json_object, outfile)
 
 def get_json_from_url(url):
 	response = requests.get(url)
-        print ('A response from %s just arrived!' % response.url)
         return json.loads(response.content)
 
 def get_summary(json_data):
@@ -64,7 +65,7 @@ def dump_json_data(json_data,no_events):
 		json_string["title"] = json_data["events"][i]["event"]["title"]
 		json_string["category"] = json_data["events"][i]["event"]["category"]
 		json_string["organizer"] = json_data["events"][i]["event"]["organizer"]["name"]
-		json_string["latitue"] = json_data["events"][i]["event"]["venue"]["latitude"]
+		json_string["latitude"] = json_data["events"][i]["event"]["venue"]["latitude"]
 		json_string["longitude"] = json_data["events"][i]["event"]["venue"]["longitude"]
 		json_string["location"] = json_data["events"][i]["event"]["venue"]["city"]
 		json_string["place"] = json_data["events"][i]["event"]["venue"]["name"]
@@ -72,22 +73,17 @@ def dump_json_data(json_data,no_events):
 		json_string["address"] = json_data["events"][i]["event"]["venue"]["address"]+","+json_string["place"]+","+json_string["location"]+","+json_string["region"]
 		repeats = json_data["events"][i]["event"]["repeats"]
 		if repeats == "no":
-			print "----------------------------Repeat No=============? > " + json_data["events"][i]["event"]["start_date"]
 			json_string["timestamp"] = get_unix_timestamp(json_data["events"][i]["event"]["start_date"],"%Y-%m-%d %H:%M:%S")
 			json_object.append(json_string)
 		else:
 			repeat_schedule = json_data["events"][i]["event"]["repeat_schedule"]	
 			if "custom" in repeat_schedule:
-				print "********Custom----------*********************Repeat Yes -- " + repeat_schedule
                         	json_string["timestamp"] = get_unix_timestamp(json_data["events"][i]["event"]["start_date"],"%Y-%m-%d %H:%M:%S")
                         	json_object.append(json_string)
 			else:
-				print "*****************************Repeat Yes -- " + repeat_schedule
 				for timestamp in get_timestamp_array(repeat_schedule,json_data["events"][i]["event"]["start_date"]):
-					print timestamp
 					json_string["timestamp"] = timestamp
 					json_object.append(json_string)
-		print json_string
 
 def get_unix_timestamp(date_string,format):
 	return int(time.mktime(datetime.datetime.strptime(date_string, format).timetuple()))
@@ -118,18 +114,18 @@ def get_timestamp_array(repeat_schedule, start_date):
 			date = date + datetime.timedelta(1)	
 
 	else:
-		if "/" in repeat_schedule:
+		if "/" in split_schedule[-2]:
 			period,day = split_schedule[-2].split("/")
 			periodic_date = get_datetime_from_day(period,day,now_datetime)	
-			if periodic_date and periodic_date > begin_period and periodic_date < end_period:
-				date = datetime.datetime.combine(periodic_date.date(), start_datetime.time())
+			if periodic_date and periodic_date >= begin_period.date() and periodic_date <= end_period.date():
+				date = datetime.datetime.combine(periodic_date, start_datetime.time())
 				timestamp_array.append(int(time.mktime(date.timetuple())))	
 
 		else:
 			given_date = split_schedule[-2]
 			periodic_date = get_datetime_from_date(given_date,now_datetime) 
-			if periodic_date and periodic_date > begin_period and periodic_date < end_period:
-                                date = datetime.datetime.combine(periodic_date.date(), start_datetime.time())
+			if periodic_date and periodic_date >= begin_period.date() and periodic_date <= end_period.date():
+                                date = datetime.datetime.combine(periodic_date, start_datetime.time())
                                 timestamp_array.append(int(time.mktime(date.timetuple())))
 
 	return timestamp_array
@@ -139,22 +135,19 @@ def get_datetime_from_day(period,day,now):
 	global day_map, period_map
 	month_range = calendar.Calendar(0).monthdatescalendar(now.year, now.month)
 	try:
-		date1 = month_rage[period_map[period]][day_map[day]]
+		date1 = month_range[period_map[period]][day_map[day]]
 		if date1.month == now.month-1 or (date1.month == 12 and now.month == 1):
 			date1 = date1 + datetime.timedelta(7)
 		
-		if date1 < now:
+		if date1 < now.date():
 			try:	
 				month_range2 = calendar.Calendar(0).monthdatescalendar(now.year, now.month+1)
-		                date2 = month_rage[period_map[period]][day_map[day]]
+		                date2 = month_range2[period_map[period]][day_map[day]]
 		                if date2.month == now.month or (date2.month == 1 and now.month == 12):
                 		        date2 = date2 + datetime.timedelta(7)
-
 				return date2
-		
 			except Exception, ex:
 				return None
-		
 		return date1
 	except Exception, ex:
 		return None
@@ -162,7 +155,7 @@ def get_datetime_from_day(period,day,now):
 def get_datetime_from_date(date,now):
 	try:
 		date1 = datetime.date(now.year, now.month, date)
-		if date1 < now:
+		if date1 < now.date():
 			date2 = datetime.date(now.year, now.month, date)
 			return date2
 
