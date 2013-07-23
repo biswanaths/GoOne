@@ -62,7 +62,7 @@ def dump_json_data(json_data,no_events):
 	global json_object
 	for i in range(1,no_events+1):
 		json_string = {}
-		json_string["title"] = json_data["events"][i]["event"]["title"]
+		json_string["name"] = json_data["events"][i]["event"]["title"]
 		json_string["category"] = json_data["events"][i]["event"]["category"]
 		json_string["organizer"] = json_data["events"][i]["event"]["organizer"]["name"]
 		json_string["latitude"] = json_data["events"][i]["event"]["venue"]["latitude"]
